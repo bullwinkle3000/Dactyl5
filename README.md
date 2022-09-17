@@ -1,2 +1,3 @@
 # Dactyl5
- Example dactyl like keyboard with KMK
+ 
+This repo contains an example of Dactyl like keyboard setup with KMK. Halves are running on MCP23017 I2C expanders and one Raspberry Pico. There's also code for PMW3360 together with firmware. For some reason in **Debug** mode cursor data is not read properly. Use this mode only to check if firmware was uploaded properly. Once this is done switch to normal mode to be able to move the cursor. 
