@@ -28,7 +28,7 @@ class REG:
     SROM_Load_Burst = 0x62
 
 class PMW3360(Module):
-    tsww = tswr = 180    
+    tsww = tswr = 180
     baud = 2000000
     cpol = 1
     cpha = 1
@@ -36,6 +36,7 @@ class PMW3360(Module):
     DIR_READ = 0x7F
 
     def __init__(self, cs, sclk, miso, mosi, invert_x=False, invert_y=False, flip_xy=False):
+        print("In pmw3360 __init__")
         self.pointing_device = PointingDevice()
         self.cs = digitalio.DigitalInOut(cs)
         self.cs.direction = digitalio.Direction.OUTPUT
@@ -66,14 +67,15 @@ class PMW3360(Module):
         try:
             self.spi.configure(baudrate=self.baud, polarity=self.cpol, phase=self.cpha)
             self.pmw3360_start()
-            self.spi.write(bytes([reg | self.DIR_WRITE, data]))            
+            self.spi.write(bytes([reg | self.DIR_WRITE, data]))
         finally:
             self.spi.unlock()
             self.pmw3360_stop()
         microcontroller.delay_us(self.tswr)
-       
+
 
     def pmw3360_read(self, reg):
+        print("Reading firmware")
         result = bytearray(1)
         while not self.spi.try_lock():
             pass
@@ -82,14 +84,15 @@ class PMW3360(Module):
             self.pmw3360_start()
             self.spi.write(bytes([reg & self.DIR_READ]))
             microcontroller.delay_us(160)
-            self.spi.readinto(result)            
+            self.spi.readinto(result)
         finally:
             self.spi.unlock()
-            self.pmw3360_stop()   
-        microcontroller.delay_us(20)     
+            self.pmw3360_stop()
+        microcontroller.delay_us(20)
         return result[0]
 
     def pwm3360_upload_srom(self):
+        print("Uploading pmw3360 FW")
         self.pmw3360_write(REG.Config2, 0x0)
         self.pmw3360_write(REG.SROM_Enable, 0x1D)
         time.sleep(0.01)
@@ -102,15 +105,17 @@ class PMW3360(Module):
             self.pmw3360_start()
             self.spi.write(bytes([REG.SROM_Load_Burst | self.DIR_WRITE]))
             microcontroller.delay_us(15)
-            
+
             for b in firmware:
                 self.spi.write(bytes([b]))
                 microcontroller.delay_us(15)
-           
+        except Error:
+            print("Received error on firmware write")
         finally:
+            print("Firmware done")
             self.spi.unlock()
-            self.pmw3360_stop()  
-        microcontroller.delay_us(1)      
+            self.pmw3360_stop()
+        microcontroller.delay_us(1)
 
     def delta_to_int(self, high, low):
         comp = (high << 8) | low
@@ -128,7 +133,7 @@ class PMW3360(Module):
             self.spi.write(bytes([REG.Motion_Burst & self.DIR_READ]))
             microcontroller.delay_us(35)
             self.spi.readinto(result)
-            
+
         finally:
             self.spi.unlock()
             self.pmw3360_stop()
@@ -136,9 +141,12 @@ class PMW3360(Module):
         return result
 
     def during_bootup(self, keyboard):
+        print("firmware during_bootup() called")
         if keyboard.debug_enabled:
             print('Setting up PMW3360')
-            
+        else:
+            print("Debugging not enabled")
+
         self.pmw3360_start()
         self.pmw3360_stop()
 
@@ -150,19 +158,19 @@ class PMW3360(Module):
         self.pmw3360_read(REG.Delta_Y_L)
         self.pmw3360_read(REG.Delta_Y_H)
 
-        self.pwm3360_upload_srom()        
+        self.pwm3360_upload_srom()
 
         self.pmw3360_write(REG.Config2, 0)
-        self.pmw3360_write(REG.Config1, 0x6)        
-        return
+        self.pmw3360_write(REG.Config1, 0x6)
+        # return
         if keyboard.debug_enabled:
             print('PMW3360 Product ID ', hex(self.pmw3360_read(REG.Product_ID)))
-            print('PMW3360 Revision ID ', hex(self.pmw3360_read(REG.Revision_ID)))            
+            print('PMW3360 Revision ID ', hex(self.pmw3360_read(REG.Revision_ID)))
             if self.pmw3360_read(REG.Observation) & 0x40:
                 print('PMW3360: Sensor is running SROM')
                 print('PMW3360: SROM ID: ', hex(self.pmw3360_read(REG.SROM_ID)))
             else:
-                print('PMW3360: Sensor is not running SROM!')               
+                print('PMW3360: Sensor is not running SROM!')
 
     def before_matrix_scan(self, keyboard):
         return
@@ -192,7 +200,7 @@ class PMW3360(Module):
                 self.pointing_device.report_x[0] = (delta_x & 0xFF) | 0x80
             else:
                 self.pointing_device.report_x[0] = delta_x & 0xFF
-            
+
             if delta_y < 0:
                 self.pointing_device.report_y[0] = (delta_y & 0xFF) | 0x80
             else:
@@ -200,7 +208,7 @@ class PMW3360(Module):
 
             if keyboard.debug_enabled:
                 print('Delta: ', delta_x, ' ', delta_y)
-            
+
             if(not self.scroll_control and not self.volume_control):
                 self.pointing_device.hid_pending = True
                 keyboard._hid_helper.hid_send(self.pointing_device._evt)
@@ -210,7 +218,7 @@ class PMW3360(Module):
                 if self.v_scroll_ctr >= self.scroll_res:
                     if delta_y > 0:
                         keyboard.tap_key(KC.MW_DN)
-                    
+
                     if delta_y < 0:
                         keyboard.tap_key(KC.MW_UP)
 
@@ -220,14 +228,14 @@ class PMW3360(Module):
                 if self.v_scroll_ctr >= self.scroll_res:
                     if delta_y > 0:
                         keyboard.tap_key(KC.VOLD)
-                    
+
                     if delta_y < 0:
                         keyboard.tap_key(KC.VOLU)
 
                     self.v_scroll_ctr = 0
-                
+
             self.pointing_device.report_x[0] = 0
-            self.pointing_device.report_y[0] = 0       
+            self.pointing_device.report_y[0] = 0
 
     def on_powersave_enable(self, keyboard):
         return

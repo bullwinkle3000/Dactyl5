@@ -16,26 +16,27 @@ from kmk.extensions.RGB import RGB
 
 keyboard = KMKKeyboard()
 
+keyboard.debug_enabled = False
+#COMMENT again
+
 keyboard.modules.append(Layers())
 keyboard.modules.append(MouseKeys())
 
 one_shot = OneShot()
 keyboard.modules.append(one_shot)
 
-pmw3360 = PMW3360(cs=board.GP17, miso=board.GP16, mosi=board.GP19, sclk=board.GP18, invert_x=True, invert_y=True, flip_xy=True)
-if str(getmount('/').label).endswith('R'):
-    keyboard.modules.append(pmw3360)
+pmw3360 = PMW3360(cs=board.D10, miso=board.MISO, mosi=board.MOSI, sclk=board.SCK, invert_x=True, invert_y=True, flip_xy=True)
+# if str(getmount('/').label).endswith('R'):
+keyboard.modules.append(pmw3360)
 
 modtap = ModTap()
 keyboard.modules.append(modtap)
 
-split = Split(data_pin=board.GP1, data_pin2=board.GP0, uart_flip=False, split_flip=False)
+split = Split(data_pin=board.D1, data_pin2=board.D0, uart_flip=False, split_flip=False)
 keyboard.modules.append(split)
 
 keyboard.extensions.append(MediaKeys())
 
-rgb_ext = RGB(pixel_pin=board.GP28, num_pixels=18)
-keyboard.extensions.append(rgb_ext)
 
 layer_delay = 300
 
@@ -90,36 +91,13 @@ keyboard.keymap = [
     [# BASE
         KC.ESC,     KC.Q,       KC.W,       KC.E,       KC.R,       KC.T,       KC.MB_MMB,                          KC.Y,       KC.U,       KC.I,       KC.O,       KC.P,       KC.BSPC,
         KC.LSFT,    KC.A,       KC.S,       KC.D,       KC.F,       KC.G,       KC.MB_LMB,                          KC.H,       KC.J,       KC.K,       KC.L,       KC.EQL,     DELRAL,
-                    ZMSB,       KC.X,       KC.C,       KC.V,       KC.B,       KC.MB_RMB,                          KC.N,       KC.M,       KC.SCLN,    WSLFT,      WSLRT,      
+                    ZMSB,       KC.X,       KC.C,       KC.V,       KC.B,       KC.MB_RMB,                          KC.N,       KC.M,       KC.SCLN,    WSLFT,      WSLRT,
                                             KC.LALT,    CTLLSH,     SPCFN1,     TABFN2,               INSALT,       ENTF1,      RCTLQT,     KC.LCMD,
                                                                     KC.VOLU,    KC.VOLD,              KC.MW_UP,     KC.MW_DN,
-                                                                                KC.MUTE,              KC.MB_BK,
-    ],
-    [# NUMBERS
-        CLSA,       KC.N1,      KC.N2,      KC.N3,      KC.N4,      KC.N5,      KC.BSPC,                            KC.BSLS,    KC.LBRC,    KC.MINS,    KC.RBRC,    KC.GRV,     KC.TRNS,
-        KC.TRNS,    KC.N6,      KC.N7,      KC.N8,      KC.N9,      KC.N0,      KC.DEL,                             KC.LEFT,    KC.DOWN,    KC.UP,      KC.RIGHT,   KC.TRNS,    KC.TRNS,
-                    OLSFT,      ORCTL,      KC.MINS,    KC.COMM,    KC.DOT,     KC.PLUS,                            KC.COMM,    KC.DOT,     KC.TRNS,    KC.RGB_VAI, KC.RGB_VAD,      
-                                            OLALT,      OLCTL,      KC.TRNS,    KC.TRNS,              KC.TRNS,      KC.TRNS,    KC.TRNS,    KC.TRNS,
-                                                                    KC.RGB_HUI, KC.RGB_HUD,           KC.RGB_SAI,   KC.RGB_SAD,
-                                                                                KC.TRNS,              KC.RGB_TOG,
-    ],
-    [# FN
-        KC.PGUP,    KC.F1,      KC.F2,      KC.F3,      KC.F4,      KC.F5,      FARU,                               KC.MB_BK,   KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,
-        KC.PGDN,    KC.F6,      KC.F7,      KC.F8,      KC.F9,      KC.F10,     KC.ENT,                             KC.HOME,    KC.PGDN,    KC.PGUP,    KC.END,     KC.TRNS,    KC.TRNS,
-                    ZMSB,       WSLFT,      WSLRT,      KC.V,       KC.B,       FARL,                               KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,      
-                                            KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,              KC.TRNS,      KC.TRNS,    KC.TRNS,    KC.TRNS,
-                                                                    KC.TRNS,    KC.TRNS,              KC.TRNS,      KC.TRNS,
-                                                                                KC.TRNS,              KC.MPLY,
-    ],
-    [# Mouse
-        KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,                            KC.P7,    KC.P8,    KC.P9,    KC.PPLS,    KC.PMNS,    KC.TRNS,
-        KC.CAPS,    KC.TRNS,    KC.LALT,    KC.LCTL,    KC.LSFT,    KC.EQL,     KC.TRNS,                            KC.P4,    KC.P5,    KC.P6,    KC.PAST,    KC.PSLS,    KC.TRNS,
-                    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,    KC.TRNS,                            KC.P1,    KC.P2,    KC.P3,    KC.PEQL,    KC.NLCK,      
-                                            KC.TRNS,    KC.MB_MMB,  KC.MB_LMB,  KC.MB_RMB,            KC.P0,        KC.PENT,  KC.PSCR,  KC.SLCK,
-                                                                    KC.TRNS,    KC.TRNS,              KC.TRNS,      KC.TRNS,
-                                                                                KC.TRNS,              KC.TRNS,
-    ],
+                                                                                KC.MUTE,              KC.MW_UP,
+    ]
 ]
 
 if __name__ == '__main__':
+    print("starting")
     keyboard.go()
