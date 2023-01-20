@@ -109,8 +109,7 @@ class PMW3360(Module):
             for b in firmware:
                 self.spi.write(bytes([b]))
                 microcontroller.delay_us(15)
-        except Error:
-            print("Received error on firmware write")
+
         finally:
             print("Firmware done")
             self.spi.unlock()
@@ -159,9 +158,9 @@ class PMW3360(Module):
         self.pmw3360_read(REG.Delta_Y_H)
 
         self.pwm3360_upload_srom()
-
-        self.pmw3360_write(REG.Config2, 0)
-        self.pmw3360_write(REG.Config1, 0x6)
+        print("SROM_ID after firmware write", hex(self.pmw3360_read(REG.SROM_ID)))  # read SROM id after upload
+        self.pmw3360_write(REG.Config2, 0)  # set to wired mouse mode
+        self.pmw3360_write(REG.Config1, 0x6)  # set x/y resolution to 700 cpi
         # return
         if keyboard.debug_enabled:
             print('PMW3360 Product ID ', hex(self.pmw3360_read(REG.Product_ID)))
