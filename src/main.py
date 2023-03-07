@@ -33,8 +33,6 @@ keyboard.modules.append(modtap)
 split = Split(
     data_pin=board.RX,
     data_pin2=board.TX,
-    # split_target_left=True,
-    # uart_flip=True,
     use_pio=True,
     split_flip=False
 )

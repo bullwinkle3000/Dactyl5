@@ -1,12 +1,30 @@
 import busio
 import digitalio
 import microcontroller
+from kmk.hid import HID_REPORT_SIZES, HIDReportTypes
 
 import time
 
 from kmk.modules import Module
 from kmk.modules.pmw3360_firmware import firmware
 from kmk.keys import KC, AX
+
+
+class PointingDevice:
+    MB_LMB = 1
+    MB_RMB = 2
+    MB_MMB = 4
+    _evt = bytearray(HID_REPORT_SIZES[HIDReportTypes.MOUSE] + 1)
+
+    def __init__(self):
+        self.key_states = {}
+        self.hid_pending = False
+        self.report_device = memoryview(self._evt)[0:1]
+        self.report_device[0] = HIDReportTypes.MOUSE
+        self.button_status = memoryview(self._evt)[1:2]
+        self.report_x = memoryview(self._evt)[2:3]
+        self.report_y = memoryview(self._evt)[3:4]
+        self.report_w = memoryview(self._evt)[4:]
 
 
 class REG:
@@ -39,7 +57,7 @@ class PMW3360(Module):
 
     def __init__(self, cs, sclk, miso, mosi, invert_x=False, invert_y=False, flip_xy=False):
         print("In pmw3360 __init__ again")
-        # self.pointing_device = PointingDevice()
+        self.pointing_device = PointingDevice()
         self.cs = digitalio.DigitalInOut(cs)
         self.cs.direction = digitalio.Direction.OUTPUT
         self.spi = busio.SPI(clock=sclk, MOSI=mosi, MISO=miso)
@@ -217,24 +235,22 @@ class PMW3360(Module):
             if self.invert_y:
                 delta_y *= -1
 
-            # if delta_x < 0:
-            #     self.pointing_device.report_x[0] = (delta_x & 0xFF) | 0x80
-            # else:
-            #     self.pointing_device.report_x[0] = delta_x & 0xFF
-            AX.X.move(delta_x)
+            if delta_x < 0:
+                self.pointing_device.report_x[0] = (delta_x & 0xFF) | 0x80
+            else:
+                self.pointing_device.report_x[0] = delta_x & 0xFF
 
-            # if delta_y < 0:
-            #     self.pointing_device.report_y[0] = (delta_y & 0xFF) | 0x80
-            # else:
-            #     self.pointing_device.report_y[0] = delta_y & 0xFF
-            AX.Y.move(delta_y)
+            if delta_y < 0:
+                self.pointing_device.report_y[0] = (delta_y & 0xFF) | 0x80
+            else:
+                self.pointing_device.report_y[0] = delta_y & 0xFF
 
             print('Delta: ', delta_x, ' ', delta_y)
 
-            # if(not self.scroll_control and not self.volume_control):
-                # self.pointing_device.hid_pending = True
-                # keyboard._hid_helper.hid_send(self.pointing_device._evt)
-            if self.scroll_control:
+            if(not self.scroll_control and not self.volume_control):
+                self.pointing_device.hid_pending = True
+                keyboard._hid_helper.hid_send(self.pointing_device._evt)
+            elif self.scroll_control:
                 #   vertical scroll
                 self.v_scroll_ctr += 1
                 if self.v_scroll_ctr >= self.scroll_res:
@@ -256,8 +272,8 @@ class PMW3360(Module):
 
                     self.v_scroll_ctr = 0
 
-            AX.X.move(0)
-            AX.Y.move(0)
+            self.pointing_device.report_x[0] = 0
+            self.pointing_device.report_y[0] = 0
 
     def on_powersave_enable(self, keyboard):
         return
