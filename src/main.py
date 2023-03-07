@@ -12,12 +12,10 @@ from kmk.modules.pmw3360 import PMW3360
 from kmk.modules.oneshot import OneShot
 
 from kmk.extensions.media_keys import MediaKeys
-from kmk.extensions.RGB import RGB
 
 keyboard = KMKKeyboard()
 
 keyboard.debug_enabled = False
-#COMMENT again
 
 keyboard.modules.append(Layers())
 keyboard.modules.append(MouseKeys())
@@ -32,7 +30,15 @@ keyboard.modules.append(pmw3360)
 modtap = ModTap()
 keyboard.modules.append(modtap)
 
-split = Split(data_pin=board.D1, data_pin2=board.D0, uart_flip=False, split_flip=False)
+split = Split(
+    data_pin=board.RX,
+    data_pin2=board.TX,
+    # split_target_left=True,
+    # uart_flip=True,
+    use_pio=True,
+    split_flip=False
+)
+
 keyboard.modules.append(split)
 
 keyboard.extensions.append(MediaKeys())
@@ -87,14 +93,26 @@ SPCFN1.before_release_handler(ball_volume_disable)
 TABFN2.before_press_handler(ball_scroll_enable)
 TABFN2.before_release_handler(ball_scroll_disable)
 
+# keyboard.keymap = [
+#     [# BASE
+#         KC.ESC,    KC.Q,       KC.W,       KC.E,       KC.R,       KC.T,                                 KC.Y,       KC.U,       KC.I,       KC.O,       KC.P,       KC.BSPC,
+#         KC.TAB,    KC.A,       KC.S,       KC.D,       KC.F,       KC.G,                                KC.H,       KC.J,       KC.K,       KC.L,       KC.EQL,     DELRAL,
+#         KC.LSFT,   KC.Z,       KC.X,       KC.C,       KC.V,       KC.B,                              KC.N,       KC.M,       KC.SCLN,    WSLFT,      WSLRT,
+#         KC.LCTL,   KC.LALT,    CTLLSH,     SPCFN1,                    INSALT,       ENTF1,      RCTLQT,     KC.LCMD,
+#                                                                     KC.VOLU,    KC.VOLD,              KC.MW_UP,     KC.MW_DN,
+#                                                                                 KC.MUTE,              KC.MW_UP,
+#     ]
+# ]
+
 keyboard.keymap = [
     [# BASE
-        KC.ESC,     KC.Q,       KC.W,       KC.E,       KC.R,       KC.T,       KC.MB_MMB,                          KC.Y,       KC.U,       KC.I,       KC.O,       KC.P,       KC.BSPC,
-        KC.LSFT,    KC.A,       KC.S,       KC.D,       KC.F,       KC.G,       KC.MB_LMB,                          KC.H,       KC.J,       KC.K,       KC.L,       KC.EQL,     DELRAL,
-                    ZMSB,       KC.X,       KC.C,       KC.V,       KC.B,       KC.MB_RMB,                          KC.N,       KC.M,       KC.SCLN,    WSLFT,      WSLRT,
-                                            KC.LALT,    CTLLSH,     SPCFN1,     TABFN2,               INSALT,       ENTF1,      RCTLQT,     KC.LCMD,
-                                                                    KC.VOLU,    KC.VOLD,              KC.MW_UP,     KC.MW_DN,
-                                                                                KC.MUTE,              KC.MW_UP,
+        KC.ESC,  KC.N1,    KC.N2,   KC.N3, KC.N4, KC.N5,            KC.N6, KC.N7, KC.N8,   KC.N9,  KC.N0,   KC.BSPC,
+        KC.TAB,  KC.Q,     KC.W,    KC.E,  KC.R,  KC.T,             KC.Y,  KC.U,  KC.I,    KC.O,   KC.P,    KC.MINS,
+        KC.LSFT, KC.A,     KC.S,    KC.D,  KC.F,  KC.G,             KC.H,  KC.J,  KC.K,    KC.L,   KC.SCLN, KC.QUOT,
+        KC.LCTL, KC.Z,     KC.X,    KC.C,  KC.V,  KC.B,             KC.N,  KC.M,  KC.COMM, KC.DOT, KC.SLSH, KC.BSLASH,
+                           KC.LBRC, KC.RBRC,  KC.SPC, KC.SPC,    KC.ENT, KC.ENT,    KC.PLUS, KC.EQL,
+                                              KC.TAB, KC.HOME,  KC.END, KC.DEL,
+                                              KC.BSPC, KC.GRV,  KC.LGUI, KC.LALT
     ]
 ]
 
